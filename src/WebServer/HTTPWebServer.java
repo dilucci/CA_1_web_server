@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package web_server;
+package WebServer;
 
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
@@ -27,22 +27,26 @@ public class HTTPWebServer {
     /**
      * @param args the command line arguments
      */
-    static int port = 8080;
-    static String ip = "127.0.0.1";
-    static String contentFolder = "public/";
-    static HttpHelper httpHelper;
+    private static int port = 8080;
+    private static String ip = "127.0.0.1";
+    private static int chatServerPort = 9090;
+    private static String chatServerIp = "100.85.90.6";
+    private static String contentFolder = "public/";
+    private static HttpHelper httpHelper;
 
     public static void main(String[] args) throws IOException {
-        if (args.length >= 3) {
+        if (args.length >= 2) {
             ip = args[0];
             port = Integer.parseInt(args[1]);
-            contentFolder = args[2];
+//            contentFolder = args[2];
         }
         httpHelper = new HttpHelper();
 //        httpHelper.connect("localhost", 9090);
-        InetSocketAddress i = new InetSocketAddress(ip, port); //localhost - 127.0.0.1
+        InetSocketAddress i = new InetSocketAddress(ip, port); //localhost is: 127.0.0.1
         HttpServer server = HttpServer.create(i, 0);
-        server.createContext("/welcome", new WelcomeHandler());
+        WelcomeHandler welcomeHandler = new WelcomeHandler();
+        server.createContext("/", welcomeHandler);
+        server.createContext("/welcome", welcomeHandler);
         server.createContext("/headers", new HeadersHandler());
         server.createContext("/pages/", new PagesHandler(contentFolder));
         server.createContext("/parameters", new ParametersHandler());
@@ -183,7 +187,7 @@ public class HTTPWebServer {
             int count = 0;
             String errorMessage = "";
             try {
-                httpHelper.connect("localhost", 9090);
+                httpHelper.connect("" + chatServerIp, chatServerPort);
                 count = httpHelper.getOnlineUsers();
             } catch (Exception e) {
                 errorMessage = "Could not establish connection to the chat-server.";
@@ -199,7 +203,7 @@ public class HTTPWebServer {
             sb.append("<body>\n");
             sb.append("<p>Online Users: " + count + "</p>\n");
             sb.append("<p>" + errorMessage + "</p>\n");
-            sb.append("<a href='http://localhost:8080/welcome'>Home</a>\n");
+            sb.append("<a href='http://gruppe4.cloudapp.net/welcome'>Home</a>\n");
             sb.append("</body>\n");
             sb.append("</html>\n");
             String response = sb.toString();
@@ -219,7 +223,7 @@ public class HTTPWebServer {
             String errorMessage = "";
             String chatLog = "";
             try {
-                httpHelper.connect("localhost", 9090);
+                httpHelper.connect(chatServerIp, chatServerPort);
                 chatLog = httpHelper.getChatLog();
             } catch (Exception e) {
                 errorMessage = "Could not establish connection to the chat-server.";
@@ -233,6 +237,7 @@ public class HTTPWebServer {
             sb.append("<meta charset='UTF-8'>\n");
             sb.append("</head>\n");
             sb.append("<body>\n");
+            sb.append("<a href='http://gruppe4.cloudapp.net/welcome'>Home</a>\n");
             sb.append("<p>" + errorMessage + "</p>\n");
             for (String string : stringArray) {
                 sb.append("<p>"+string+"</p>\n");
